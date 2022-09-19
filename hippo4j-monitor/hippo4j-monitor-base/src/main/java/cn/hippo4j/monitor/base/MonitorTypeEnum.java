@@ -28,9 +28,9 @@ public enum MonitorTypeEnum {
     LOG,
 
     /**
-     * PROMETHEUS
+     * MICROMETER
      */
-    PROMETHEUS,
+    MICROMETER,
 
     /**
      * SERVER
@@ -38,7 +38,7 @@ public enum MonitorTypeEnum {
     SERVER,
 
     /**
-     * ES
+     * ELASTICSEARCH
      */
-    ES
+    ELASTICSEARCH
 }

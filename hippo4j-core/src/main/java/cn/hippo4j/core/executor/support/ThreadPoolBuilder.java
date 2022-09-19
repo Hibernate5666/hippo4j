@@ -47,15 +47,17 @@ public class ThreadPoolBuilder implements Builder<ThreadPoolExecutor> {
 
     private int capacity = 512;
 
-    private BlockingQueueTypeEnum blockingQueueType;
+    private BlockingQueueTypeEnum blockingQueueType = BlockingQueueTypeEnum.LINKED_BLOCKING_QUEUE;
 
-    private BlockingQueue workQueue = new LinkedBlockingQueue(capacity);
+    private BlockingQueue workQueue;
 
     private RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.AbortPolicy();
 
     private boolean isDaemon = false;
 
     private String threadNamePrefix;
+
+    private ThreadFactory threadFactory;
 
     private String threadPoolId;
 
@@ -84,6 +86,11 @@ public class ThreadPoolBuilder implements Builder<ThreadPoolExecutor> {
 
     public ThreadPoolBuilder threadFactory(String threadNamePrefix) {
         this.threadNamePrefix = threadNamePrefix;
+        return this;
+    }
+
+    public ThreadPoolBuilder threadFactory(ThreadFactory threadFactory) {
+        this.threadFactory = threadFactory;
         return this;
     }
 
@@ -227,9 +234,13 @@ public class ThreadPoolBuilder implements Builder<ThreadPoolExecutor> {
     }
 
     private static AbstractBuildThreadPoolTemplate.ThreadPoolInitParam buildInitParam(ThreadPoolBuilder builder) {
-        Assert.notEmpty(builder.threadNamePrefix, "The thread name prefix cannot be empty or an empty string.");
-        AbstractBuildThreadPoolTemplate.ThreadPoolInitParam initParam =
-                new AbstractBuildThreadPoolTemplate.ThreadPoolInitParam(builder.threadNamePrefix, builder.isDaemon);
+        AbstractBuildThreadPoolTemplate.ThreadPoolInitParam initParam;
+        if (builder.threadFactory == null) {
+            Assert.notEmpty(builder.threadNamePrefix, "The thread name prefix cannot be empty or an empty string.");
+            initParam = new AbstractBuildThreadPoolTemplate.ThreadPoolInitParam(builder.threadNamePrefix, builder.isDaemon);
+        } else {
+            initParam = new AbstractBuildThreadPoolTemplate.ThreadPoolInitParam(builder.threadFactory);
+        }
         initParam.setCorePoolNum(builder.corePoolSize)
                 .setMaxPoolNum(builder.maxPoolSize)
                 .setKeepAliveTime(builder.keepAliveTime)
@@ -246,7 +257,10 @@ public class ThreadPoolBuilder implements Builder<ThreadPoolExecutor> {
             initParam.setAwaitTerminationMillis(builder.awaitTerminationMillis);
         }
         if (!builder.isFastPool) {
-            if (builder.blockingQueueType != null) {
+            if (builder.workQueue == null) {
+                if (builder.blockingQueueType == null) {
+                    builder.blockingQueueType = BlockingQueueTypeEnum.LINKED_BLOCKING_QUEUE;
+                }
                 builder.workQueue = BlockingQueueTypeEnum.createBlockingQueue(builder.blockingQueueType.getType(), builder.capacity);
             }
             initParam.setWorkQueue(builder.workQueue);

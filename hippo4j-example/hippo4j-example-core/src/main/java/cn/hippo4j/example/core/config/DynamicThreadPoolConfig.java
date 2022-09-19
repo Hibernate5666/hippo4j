@@ -25,10 +25,12 @@ import com.alibaba.ttl.threadpool.TtlExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static cn.hippo4j.common.constant.Constants.AVAILABLE_PROCESSORS;
 import static cn.hippo4j.example.core.constant.GlobalTestConstant.MESSAGE_CONSUME;
 import static cn.hippo4j.example.core.constant.GlobalTestConstant.MESSAGE_PRODUCE;
 
@@ -74,5 +76,24 @@ public class DynamicThreadPoolConfig {
                 .taskDecorator(new TaskDecoratorTest.ContextCopyingDecorator())
                 .build();
         return produceExecutor;
+    }
+
+    /**
+     * Test spring {@link ThreadPoolTaskExecutor}, Thread-pool id: testSpringThreadPoolTaskExecutor
+     *
+     * @return
+     */
+    // @Bean
+    @DynamicThreadPool
+    public ThreadPoolTaskExecutor testSpringThreadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setThreadNamePrefix("test-spring-task-executor_");
+        int maxQueueCapacity = 200;
+        threadPoolTaskExecutor.setCorePoolSize(AVAILABLE_PROCESSORS * 2);
+        threadPoolTaskExecutor.setMaxPoolSize(AVAILABLE_PROCESSORS * 4);
+        threadPoolTaskExecutor.setQueueCapacity(maxQueueCapacity);
+        threadPoolTaskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        threadPoolTaskExecutor.setTaskDecorator(new TaskDecoratorTest.ContextCopyingDecorator());
+        return threadPoolTaskExecutor;
     }
 }

@@ -25,7 +25,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static cn.hippo4j.common.constant.Constants.EXECUTE_TIMEOUT_TRACE;
 
@@ -42,9 +45,13 @@ public class RunStateHandlerTest {
     @Resource
     private ThreadPoolExecutor messageProduceDynamicThreadPool;
 
+    /*
+     * @Resource private ThreadPoolTaskExecutor testSpringThreadPoolTaskExecutor;
+     */
+
     private final ThreadPoolExecutor runStateHandlerTestExecutor = new ThreadPoolExecutor(
-            3,
-            3,
+            4,
+            4,
             0L,
             TimeUnit.MILLISECONDS,
             new SynchronousQueue<>(),
@@ -63,9 +70,10 @@ public class RunStateHandlerTest {
         // Start the dynamic thread pool to simulate running tasks
         runTask(messageConsumeTtlDynamicThreadPool);
         runTask(messageProduceDynamicThreadPool);
+        // runTask(testThreadPoolTaskExecutor);
         // Dynamically register thread pool
-        ThreadPoolExecutor registerDynamicThreadPool = RegisterDynamicThreadPoolTest.registerDynamicThreadPool("auto-register-dynamic-thread-pool");
-        runTask(registerDynamicThreadPool);
+        // ThreadPoolExecutor registerDynamicThreadPool = RegisterDynamicThreadPoolTest.registerDynamicThreadPool("auto-register-dynamic-thread-pool");
+        // runTask(registerDynamicThreadPool);
     }
 
     private void runTask(Executor executor) {
@@ -74,7 +82,7 @@ public class RunStateHandlerTest {
             /**
              * When the execution of the thread pool task times out, the Trace flag is put into the MDC, and it is printed out when an alarm occurs.
              */
-            MDC.put(EXECUTE_TIMEOUT_TRACE, "https://github.com/opengoofy/hippo4j 感觉不错来个 Star.");
+            MDC.put(EXECUTE_TIMEOUT_TRACE, "39948722194639841.251.16612352194691531");
             ThreadUtil.sleep(5000);
             for (int i = 0; i < Integer.MAX_VALUE; i++) {
                 try {

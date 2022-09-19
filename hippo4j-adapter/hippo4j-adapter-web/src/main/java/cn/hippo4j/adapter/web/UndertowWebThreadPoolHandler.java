@@ -27,7 +27,7 @@ import cn.hippo4j.core.executor.DynamicThreadPoolExecutor;
 import cn.hutool.core.date.DateUtil;
 import io.undertow.Undertow;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.web.embedded.undertow.UndertowWebServer;
+import org.springframework.boot.web.embedded.undertow.UndertowServletWebServer;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.util.ReflectionUtils;
 import org.xnio.Options;
@@ -50,11 +50,12 @@ public class UndertowWebThreadPoolHandler extends AbstractWebThreadPoolService {
     @Override
     protected Executor getWebThreadPoolByServer(WebServer webServer) {
         // There is no need to consider reflection performance because the fetch is a singleton.
-        UndertowWebServer undertowWebServer = (UndertowWebServer) webServer;
-        Field undertowField = ReflectionUtils.findField(UndertowWebServer.class, UNDERTOW_NAME);
+        // Springboot 2-3 version, can directly through reflection to obtain the undertow property
+        UndertowServletWebServer undertowServletWebServer = (UndertowServletWebServer) webServer;
+        Field undertowField = ReflectionUtils.findField(UndertowServletWebServer.class, UNDERTOW_NAME);
         ReflectionUtils.makeAccessible(undertowField);
 
-        Undertow undertow = (Undertow) ReflectionUtils.getField(undertowField, undertowWebServer);
+        Undertow undertow = (Undertow) ReflectionUtils.getField(undertowField, undertowServletWebServer);
         return Objects.isNull(undertow) ? null : undertow.getWorker();
     }
 
@@ -102,27 +103,20 @@ public class UndertowWebThreadPoolHandler extends AbstractWebThreadPoolService {
         Field field = ReflectionUtils.findField(XnioWorker.class, "taskPool");
         ReflectionUtils.makeAccessible(field);
         Object fieldObject = ReflectionUtils.getField(field, xnioWorker);
-        // 核心线程数
         Method getCorePoolSize = ReflectionUtils.findMethod(fieldObject.getClass(), "getCorePoolSize");
         ReflectionUtils.makeAccessible(getCorePoolSize);
         int corePoolSize = (int) ReflectionUtils.invokeMethod(getCorePoolSize, fieldObject);
-        // 最大线程数
         Method getMaximumPoolSize = ReflectionUtils.findMethod(fieldObject.getClass(), "getMaximumPoolSize");
         ReflectionUtils.makeAccessible(getMaximumPoolSize);
         int maximumPoolSize = (int) ReflectionUtils.invokeMethod(getMaximumPoolSize, fieldObject);
-        // 线程池当前线程数 (有锁)
         Method getPoolSize = ReflectionUtils.findMethod(fieldObject.getClass(), "getPoolSize");
         ReflectionUtils.makeAccessible(getPoolSize);
         int poolSize = (int) ReflectionUtils.invokeMethod(getPoolSize, fieldObject);
-        // 活跃线程数 (有锁)
         Method getActiveCount = ReflectionUtils.findMethod(fieldObject.getClass(), "getActiveCount");
         ReflectionUtils.makeAccessible(getActiveCount);
         int activeCount = (int) ReflectionUtils.invokeMethod(getActiveCount, fieldObject);
         activeCount = Math.max(activeCount, 0);
-        // 当前负载
         String currentLoad = CalculateUtil.divide(activeCount, maximumPoolSize) + "";
-        // 峰值负载
-        // 没有峰值记录，直接使用当前数据
         String peakLoad = CalculateUtil.divide(activeCount, maximumPoolSize) + "";
         stateInfo.setCoreSize(corePoolSize);
         stateInfo.setPoolSize(poolSize);
@@ -152,7 +146,7 @@ public class UndertowWebThreadPoolHandler extends AbstractWebThreadPoolService {
             xnioWorker.setOption(Options.WORKER_TASK_CORE_THREADS, coreSize);
             xnioWorker.setOption(Options.WORKER_TASK_MAX_THREADS, maxSize);
             xnioWorker.setOption(Options.WORKER_TASK_KEEPALIVE, keepAliveTime);
-            log.info("[Undertow] Changed web thread pool. corePoolSize: [{}], maximumPoolSize: [{}], keepAliveTime: [{}]",
+            log.info("[Undertow] Changed web thread pool. corePoolSize: {}, maximumPoolSize: {}, keepAliveTime: {}",
                     String.format(ChangeThreadPoolConstants.CHANGE_DELIMITER, originalCoreSize, coreSize),
                     String.format(ChangeThreadPoolConstants.CHANGE_DELIMITER, originalMaximumPoolSize, maxSize),
                     String.format(ChangeThreadPoolConstants.CHANGE_DELIMITER, originalKeepAliveTime, keepAliveTime));

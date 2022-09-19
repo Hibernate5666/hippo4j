@@ -23,6 +23,8 @@ import cn.hippo4j.common.enums.EnableEnum;
 import cn.hippo4j.common.executor.support.BlockingQueueTypeEnum;
 import cn.hippo4j.common.executor.support.RejectedPolicyTypeEnum;
 import cn.hippo4j.common.model.ThreadPoolParameterInfo;
+import cn.hippo4j.common.model.register.DynamicThreadPoolRegisterParameter;
+import cn.hippo4j.common.model.register.DynamicThreadPoolRegisterWrapper;
 import cn.hippo4j.common.toolkit.BooleanUtil;
 import cn.hippo4j.common.toolkit.JSONUtil;
 import cn.hippo4j.common.web.base.Result;
@@ -43,11 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.task.TaskDecorator;
+import org.springframework.util.ClassUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -96,7 +101,7 @@ public final class DynamicThreadPoolPostProcessor implements BeanPostProcessor {
             ThreadPoolExecutor remoteThreadPoolExecutor = fillPoolAndRegister(dynamicThreadPoolWrapper);
             DynamicThreadPoolAdapterChoose.replace(bean, remoteThreadPoolExecutor);
             subscribeConfig(dynamicThreadPoolWrapper);
-            return remoteThreadPoolExecutor;
+            return DynamicThreadPoolAdapterChoose.match(bean) ? bean : remoteThreadPoolExecutor;
         }
         if (bean instanceof DynamicThreadPoolWrapper) {
             DynamicThreadPoolWrapper dynamicThreadPoolWrapper = (DynamicThreadPoolWrapper) bean;
@@ -122,6 +127,7 @@ public final class DynamicThreadPoolPostProcessor implements BeanPostProcessor {
      */
     protected ThreadPoolExecutor fillPoolAndRegister(DynamicThreadPoolWrapper dynamicThreadPoolWrapper) {
         String threadPoolId = dynamicThreadPoolWrapper.getThreadPoolId();
+        ThreadPoolExecutor executor = dynamicThreadPoolWrapper.getExecutor();
         Map<String, String> queryStrMap = new HashMap(3);
         queryStrMap.put(TP_ID, threadPoolId);
         queryStrMap.put(ITEM_ID, properties.getItemId());
@@ -138,38 +144,59 @@ public final class DynamicThreadPoolPostProcessor implements BeanPostProcessor {
                     BlockingQueue workQueue = BlockingQueueTypeEnum.createBlockingQueue(threadPoolParameterInfo.getQueueType(), threadPoolParameterInfo.getCapacity());
                     newDynamicThreadPoolExecutor = ThreadPoolBuilder.builder()
                             .dynamicPool()
+                            .threadPoolId(threadPoolId)
                             .workQueue(workQueue)
-                            .threadFactory(threadPoolId)
+                            .threadFactory(executor.getThreadFactory())
                             .poolThreadSize(threadPoolParameterInfo.corePoolSizeAdapt(), threadPoolParameterInfo.maximumPoolSizeAdapt())
                             .keepAliveTime(threadPoolParameterInfo.getKeepAliveTime(), TimeUnit.SECONDS)
                             .rejected(RejectedPolicyTypeEnum.createPolicy(threadPoolParameterInfo.getRejectedType()))
                             .allowCoreThreadTimeOut(EnableEnum.getBool(threadPoolParameterInfo.getAllowCoreThreadTimeOut()))
                             .build();
                     // Set dynamic thread pool enhancement parameters.
-                    if (dynamicThreadPoolWrapper.getExecutor() instanceof AbstractDynamicExecutorSupport) {
+                    if (executor instanceof AbstractDynamicExecutorSupport) {
                         ThreadPoolNotifyAlarm threadPoolNotifyAlarm = new ThreadPoolNotifyAlarm(
                                 BooleanUtil.toBoolean(threadPoolParameterInfo.getIsAlarm().toString()),
-                                threadPoolParameterInfo.getCapacityAlarm(),
-                                threadPoolParameterInfo.getLivenessAlarm());
+                                threadPoolParameterInfo.getLivenessAlarm(),
+                                threadPoolParameterInfo.getCapacityAlarm());
                         GlobalNotifyAlarmManage.put(threadPoolId, threadPoolNotifyAlarm);
-                        TaskDecorator taskDecorator = ((DynamicThreadPoolExecutor) dynamicThreadPoolWrapper.getExecutor()).getTaskDecorator();
+                        TaskDecorator taskDecorator = ((DynamicThreadPoolExecutor) executor).getTaskDecorator();
                         ((DynamicThreadPoolExecutor) newDynamicThreadPoolExecutor).setTaskDecorator(taskDecorator);
-                        long awaitTerminationMillis = ((DynamicThreadPoolExecutor) dynamicThreadPoolWrapper.getExecutor()).awaitTerminationMillis;
-                        boolean waitForTasksToCompleteOnShutdown = ((DynamicThreadPoolExecutor) dynamicThreadPoolWrapper.getExecutor()).waitForTasksToCompleteOnShutdown;
+                        long awaitTerminationMillis = ((DynamicThreadPoolExecutor) executor).awaitTerminationMillis;
+                        boolean waitForTasksToCompleteOnShutdown = ((DynamicThreadPoolExecutor) executor).waitForTasksToCompleteOnShutdown;
                         ((DynamicThreadPoolExecutor) newDynamicThreadPoolExecutor).setSupportParam(awaitTerminationMillis, waitForTasksToCompleteOnShutdown);
-                        long executeTimeOut = ((DynamicThreadPoolExecutor) dynamicThreadPoolWrapper.getExecutor()).getExecuteTimeOut();
+                        long executeTimeOut = Optional.ofNullable(threadPoolParameterInfo.getExecuteTimeOut())
+                                .orElse(((DynamicThreadPoolExecutor) executor).getExecuteTimeOut());
                         ((DynamicThreadPoolExecutor) newDynamicThreadPoolExecutor).setExecuteTimeOut(executeTimeOut);
                     }
                     dynamicThreadPoolWrapper.setExecutor(newDynamicThreadPoolExecutor);
                     isSubscribe = true;
                 }
+            } else {
+                // DynamicThreadPool configuration undefined in server
+                DynamicThreadPoolRegisterParameter parameterInfo = DynamicThreadPoolRegisterParameter.builder()
+                        .threadPoolId(threadPoolId)
+                        .corePoolSize(executor.getCorePoolSize())
+                        .maximumPoolSize(executor.getMaximumPoolSize())
+                        .blockingQueueType(BlockingQueueTypeEnum.getBlockingQueueTypeEnumByName(executor.getQueue().getClass().getSimpleName()))
+                        .capacity(executor.getQueue().remainingCapacity())
+                        .allowCoreThreadTimeOut(executor.allowsCoreThreadTimeOut())
+                        .keepAliveTime(executor.getKeepAliveTime(TimeUnit.MILLISECONDS))
+                        .isAlarm(false)
+                        .activeAlarm(80)
+                        .capacityAlarm(80)
+                        .rejectedPolicyType(RejectedPolicyTypeEnum.getRejectedPolicyTypeEnumByName(((DynamicThreadPoolExecutor) executor).getRedundancyHandler().getClass().getSimpleName()))
+                        .build();
+                DynamicThreadPoolRegisterWrapper registerWrapper = DynamicThreadPoolRegisterWrapper.builder()
+                        .dynamicThreadPoolRegisterParameter(parameterInfo)
+                        .build();
+                GlobalThreadPoolManage.dynamicRegister(registerWrapper);
             }
         } catch (Exception ex) {
-            newDynamicThreadPoolExecutor = dynamicThreadPoolWrapper.getExecutor() != null ? dynamicThreadPoolWrapper.getExecutor() : CommonDynamicThreadPool.getInstance(threadPoolId);
+            newDynamicThreadPoolExecutor = executor != null ? executor : CommonDynamicThreadPool.getInstance(threadPoolId);
             dynamicThreadPoolWrapper.setExecutor(newDynamicThreadPoolExecutor);
             log.error("Failed to initialize thread pool configuration. error message: {}", ex.getMessage());
         } finally {
-            if (Objects.isNull(dynamicThreadPoolWrapper.getExecutor())) {
+            if (Objects.isNull(executor)) {
                 dynamicThreadPoolWrapper.setExecutor(CommonDynamicThreadPool.getInstance(threadPoolId));
             }
             // Set whether to subscribe to the remote thread pool configuration.
