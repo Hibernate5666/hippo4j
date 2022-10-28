@@ -16,12 +16,13 @@ docker run -d -p 6691:6691 --name hippo4j-server hippo4j/hippo4j-server
 
 ```shell
 docker run -d -p 6691:6691 --name hippo4j-server \
+-e DATASOURCE_MODE=mysql \
 -e DATASOURCE_HOST=xxx.xxx.xxx.xxx \
 -e DATASOURCE_PORT=3306 \
 -e DATASOURCE_DB=hippo4j_manager \
 -e DATASOURCE_USERNAME=root \
 -e DATASOURCE_PASSWORD=root \
-hippo4j/hippo4j-server 
+hippo4j/hippo4j-server
 ```
 
 访问 Server 控制台，路径 `http://localhost:6691/index.html` ，默认用户名密码：admin / 123456
@@ -33,10 +34,10 @@ hippo4j/hippo4j-server
 方式一：
 
 ```shell
-# 进入到 hippo4j-server 工程路径下
+# 进入到 hippo4j-server/hippo4j-bootstrap 工程路径下
 mvn clean package -Dskip.spotless.apply=true
 # 默认打包是打包的 tag 是 latest
-docker build -t hippo4j/hippo4j-server ../hippo4j-server
+docker build -t hippo4j/hippo4j-server ../hippo4j-bootstrap
 ```
 
 方式二：
