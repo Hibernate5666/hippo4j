@@ -1,10 +1,13 @@
-<img align="center" width="300" alt="image" src="https://user-images.githubusercontent.com/77398366/181906454-b46f6a14-7c2c-4b8f-8b0a-40432521bed8.png">
 
-中文 | [English](https://github.com/opengoofy/hippo4j/blob/develop/README-EN.md)
+# 动态可观测线程池
 
-# 动态可观测线程池框架，提高线上运行保障能力
+<img align="right" width="320" alt="image" src="https://user-images.githubusercontent.com/77398366/181906454-b46f6a14-7c2c-4b8f-8b0a-40432521bed8.png">
 
-[![Gitee](https://gitee.com/magegoofy/hippo4j/badge/star.svg?theme=gvp)](https://gitee.com/magegoofy/hippo4j) [![GitHub](https://img.shields.io/github/stars/opengoofy/hippo4j?color=5470c6)](https://github.com/opengoofy/hippo4j) [![Contributors](https://img.shields.io/github/contributors/opengoofy/hippo4j?color=3ba272)](https://github.com/opengoofy/hippo4j/graphs/contributors) [![Docker Pulls](https://img.shields.io/docker/pulls/hippo4j/hippo4j-server.svg?label=docker%20pulls&color=fac858)](https://store.docker.com/community/images/hippo4j/hippo4j-server) [![codecov](https://codecov.io/gh/opengoofy/hippo4j/branch/develop/graph/badge.svg?token=WBUVJN107I)](https://codecov.io/gh/opengoofy/hippo4j)
+通过对 JDK 线程池增强，以及扩展三方框架底层线程池等功能，为业务系统提高线上运行保障能力。
+
+[![GitHub stars](https://img.shields.io/github/stars/opengoofy/hippo4j.svg?style=for-the-badge&label=Stars&logo=github)](https://github.com/opengoofy/hippo4j) [![Contributors](https://img.shields.io/github/contributors/opengoofy/hippo4j.svg?style=for-the-badge&label=Contributors&logo=appveyor)](https://github.com/opengoofy/hippo4j) 
+
+[![Gitee](https://gitee.com/magegoofy/hippo4j/badge/star.svg?theme=gvp)](https://gitee.com/magegoofy/hippo4j) [![Docker Pulls](https://img.shields.io/docker/pulls/hippo4j/hippo4j-server.svg?label=docker%20pulls&color=fac858)](https://store.docker.com/community/images/hippo4j/hippo4j-server) [![codecov](https://codecov.io/gh/opengoofy/hippo4j/branch/develop/graph/badge.svg?token=WBUVJN107I)](https://codecov.io/gh/opengoofy/hippo4j) [![EN doc](https://img.shields.io/badge/readme-English-orange.svg)](https://github.com/opengoofy/hippo4j/blob/develop/README-EN.md)
 
 -------
 
@@ -24,9 +27,7 @@
 - 无法执行优雅关闭，当项目关闭时，大量正在运行的线程池任务被丢弃。
 - 线程池运行中，任务执行停止，怀疑发生死锁或执行耗时操作，但是无从下手。
 
-## 什么是 Hippo-4J
-
-Hippo-4J 通过对 JDK 线程池增强，以及扩展三方框架底层线程池等功能，为业务系统提高线上运行保障能力。
+## 什么是 Hippo4j
 
 提供以下功能支持：
 
@@ -34,11 +35,14 @@ Hippo-4J 通过对 JDK 线程池增强，以及扩展三方框架底层线程池
 
 - 动态变更 - 应用运行时动态变更线程池参数，包括但不限于：核心、最大线程数、阻塞队列容量、拒绝策略等。
 - 通知报警 - 内置四种报警通知策略，线程池活跃度、容量水位、拒绝策略以及任务执行时间超长。
-- 运行监控 - 实时查看线程池运行时数据，最近半小时线程池运行数据图表展示。
+- 数据采集 - 支持多种方式采集线程池数据，包括但不限于：日志、内置采集、Prometheus、InfluxDB、ElasticSearch 等。
+- 运行监控 - 实时查看线程池运行时数据，自定义时间内线程池运行数据图表展示。
 - 功能扩展 - 支持线程池任务传递上下文；项目关闭时，支持等待线程池在指定时间内完成任务。
 - 多种模式 - 内置两种使用模式：[依赖配置中心](https://hippo4j.cn/docs/user_docs/getting_started/config/hippo4j-config-start) 和 [无中间件依赖](https://hippo4j.cn/docs/user_docs/getting_started/server/hippo4j-server-start)。
 - 容器管理 - Tomcat、Jetty、Undertow 容器线程池运行时查看和线程数变更。
 - 框架适配 - Dubbo、Hystrix、RabbitMQ、RocketMQ 等消费线程池运行时数据查看和线程数变更。
+- 变更审核 - 提供多种用户角色，普通用户变更线程池参数需要 Admin 用户审核方可生效。
+- 动态化插件 - 内置多种线程池插件，支持用户自定义插件以及运行时扩展。
 
 ## 快速开始
 
@@ -74,6 +78,6 @@ Hippo-4J 通过对 JDK 线程池增强，以及扩展三方框架底层线程池
 
 ## 鸣谢
 
-Hippo4j 社区已收到 Jetbrains 多份免费 Licenses，并已分配到项目活跃开发者，非常感谢 Jetbrains 对开源社区的支持。
+Hippo4j 社区收到 Jetbrains 多份 Licenses，并已分配项目 [活跃开发者](https://hippo4j.cn/team)，非常感谢 Jetbrains 对开源社区的支持。
 
 ![JetBrains Logo (Main) logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg)
