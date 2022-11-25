@@ -15,37 +15,17 @@
  * limitations under the License.
  */
 
-package cn.hippo4j.common.api;
+package cn.hippo4j.example.config.consul;
 
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
+import cn.hippo4j.core.enable.EnableDynamicThreadPool;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-/**
- * when init thread-pool dynamic refresh.
- */
-public interface ThreadPoolInitRefresh extends ApplicationRunner {
+@EnableDynamicThreadPool
+@SpringBootApplication(scanBasePackages = "cn.hippo4j.example")
+public class ConfigConsulExampleApplication {
 
-    /**
-     * Initializes the thread pool after system startup
-     *
-     * @param context new properties
-     */
-    void initRefresh(String context);
-
-    /**
-     * get from the Configuration center
-     *
-     * @return new properties
-     * @throws Exception exception
-     */
-    String getProperties() throws Exception;
-
-    @Override
-    default void run(ApplicationArguments args) throws Exception {
-        String properties = getProperties();
-        if (properties == null) {
-            return;
-        }
-        initRefresh(properties);
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigConsulExampleApplication.class, args);
     }
 }
