@@ -7,7 +7,7 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/opengoofy/hippo4j.svg?style=for-the-badge&label=Stars&logo=github)](https://github.com/opengoofy/hippo4j) [![Contributors](https://img.shields.io/github/contributors/opengoofy/hippo4j.svg?style=for-the-badge&label=Contributors&logo=appveyor)](https://github.com/opengoofy/hippo4j) 
 
-[![Gitee](https://gitee.com/magegoofy/hippo4j/badge/star.svg?theme=gvp)](https://gitee.com/magegoofy/hippo4j) [![Docker Pulls](https://img.shields.io/docker/pulls/hippo4j/hippo4j-server.svg?label=docker%20pulls&color=fac858)](https://store.docker.com/community/images/hippo4j/hippo4j-server) [![codecov](https://codecov.io/gh/opengoofy/hippo4j/branch/develop/graph/badge.svg?token=WBUVJN107I)](https://codecov.io/gh/opengoofy/hippo4j) [![EN doc](https://img.shields.io/badge/readme-English-orange.svg)](https://github.com/opengoofy/hippo4j/blob/develop/README-EN.md)
+[![Gitee](https://gitee.com/magestack/hippo4j/badge/star.svg?theme=gvp)](https://gitee.com/magestack/hippo4j) [![Docker Pulls](https://img.shields.io/docker/pulls/hippo4j/hippo4j-server.svg?label=docker%20pulls&color=fac858)](https://store.docker.com/community/images/hippo4j/hippo4j-server) [![codecov](https://codecov.io/gh/opengoofy/hippo4j/branch/develop/graph/badge.svg?token=WBUVJN107I)](https://codecov.io/gh/opengoofy/hippo4j) [![EN doc](https://img.shields.io/badge/readme-English-orange.svg)](https://github.com/opengoofy/hippo4j/blob/develop/README-EN.md)
 
 -------
 
@@ -61,7 +61,7 @@
 
 扫码添加微信，备注：hippo4j，邀您加入群聊。若图片加载不出来，访问 [官网站点](https://hippo4j.cn/docs/user_docs/other/group)。
 
-## 关于学习
+## 深入原理
 
 如果您公司没有使用 Hippo4j 场景的话，我也建议去阅读下项目的底层原理，主要有以下几个原因：
 
@@ -73,8 +73,6 @@
 - 自定义 RPC 框架实现，封装 Netty 完成客户端/服务端网络通信优化。
 - 通过 CheckStyle、Spotless 等插件规范代码编写，保障高质量代码行为和代码样式。
 
-> 还有很多优秀的代码设计就不逐一列举了，相信认真研究过底层原理的同学一定会有所收获。
-
 ## 友情链接
 
 - [[ Sa-Token ]](https://github.com/dromara/sa-token)：一个轻量级 java 权限认证框架，让鉴权变得简单、优雅！  
@@ -84,11 +82,11 @@
 - [[ toBeBetterJavaer ]](https://github.com/itwanger/toBeBetterJavaer)：一份通俗易懂、风趣幽默的 Java 学习指南。
 - [[ Jpom ]](https://gitee.com/dromara/Jpom)：简而轻的低侵入式在线构建、自动部署、日常运维、项目监控软件。
 
-## 知识星球
+## 刚果商城
 
-专注代码实战的技术星球，从零到一完成企业级商城项目，以及开发框架底层基础组件，助力开发者技术设计能力提升。
+👉 [工作经验不满五年程序员，如何通过项目提高个人技术能力？](https://sourl.cn/VERS4y)
 
-详情查看：[小马哥的代码实战课](https://xiaomage.info/knowledge-planet/)。
+<img width="1254" alt="image" src="https://user-images.githubusercontent.com/77398366/213593264-ebef9507-9e62-4257-900b-59856dd199f5.png">
 
 ## 贡献者
 
