@@ -18,6 +18,7 @@
 package cn.hippo4j.adapter.web;
 
 import cn.hippo4j.common.constant.ChangeThreadPoolConstants;
+import cn.hippo4j.common.enums.WebContainerEnum;
 import cn.hippo4j.common.model.ThreadPoolBaseInfo;
 import cn.hippo4j.common.model.ThreadPoolParameter;
 import cn.hippo4j.common.model.ThreadPoolParameterInfo;
@@ -153,8 +154,14 @@ public class TomcatWebThreadPoolHandler extends AbstractWebThreadPoolService {
             int originalCoreSize = tomcatThreadPoolExecutor.getCorePoolSize();
             int originalMaximumPoolSize = tomcatThreadPoolExecutor.getMaximumPoolSize();
             long originalKeepAliveTime = tomcatThreadPoolExecutor.getKeepAliveTime(TimeUnit.SECONDS);
-            tomcatThreadPoolExecutor.setCorePoolSize(threadPoolParameterInfo.corePoolSizeAdapt());
-            tomcatThreadPoolExecutor.setMaximumPoolSize(threadPoolParameterInfo.maximumPoolSizeAdapt());
+            // see cn.hippo4j.common.toolkit.ThreadPoolUtil#setCoreSizeAndMaximumSize
+            if (threadPoolParameterInfo.corePoolSizeAdapt() > originalMaximumPoolSize) {
+                tomcatThreadPoolExecutor.setMaximumPoolSize(threadPoolParameterInfo.maximumPoolSizeAdapt());
+                tomcatThreadPoolExecutor.setCorePoolSize(threadPoolParameterInfo.corePoolSizeAdapt());
+            } else {
+                tomcatThreadPoolExecutor.setCorePoolSize(threadPoolParameterInfo.corePoolSizeAdapt());
+                tomcatThreadPoolExecutor.setMaximumPoolSize(threadPoolParameterInfo.maximumPoolSizeAdapt());
+            }
             tomcatThreadPoolExecutor.setKeepAliveTime(threadPoolParameterInfo.getKeepAliveTime(), TimeUnit.SECONDS);
             log.info("[Tomcat] Changed web thread pool. corePoolSize: {}, maximumPoolSize: {}, keepAliveTime: {}",
                     String.format(ChangeThreadPoolConstants.CHANGE_DELIMITER, originalCoreSize, threadPoolParameterInfo.corePoolSizeAdapt()),
@@ -163,5 +170,10 @@ public class TomcatWebThreadPoolHandler extends AbstractWebThreadPoolService {
         } catch (Exception ex) {
             log.error("Failed to modify the Tomcat thread pool parameter.", ex);
         }
+    }
+
+    @Override
+    public WebContainerEnum getWebContainerType() {
+        return WebContainerEnum.TOMCAT;
     }
 }

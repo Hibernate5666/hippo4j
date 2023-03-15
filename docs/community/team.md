@@ -1,5 +1,6 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
+title: 团队成员
 ---
 
 ## Hippo4j 团队
@@ -17,9 +18,9 @@ sidebar_position: 1
     <td align="center" width="26%">联系方式</td>
   </tr>
   <tr>
-    <td align="center" ><a href="https://github.com/mageeric"><img src="https://avatars.githubusercontent.com/u/77398366?v=4?s=64" width="64px;"/></a></td>
+    <td align="center" ><a href="https://github.com/magestacks"><img src="https://avatars.githubusercontent.com/u/77398366?v=4?s=64" width="64px;"/></a></td>
     <td align="center" >马称</td>
-    <td align="center" ><a href="https://github.com/mageeric">mageeric</a></td>
+    <td align="center" ><a href="https://github.com/magestacks">magestacks</a></td>
     <td align="center" ><a href="https://www.xiaomage.info/">小马哥的技术专栏</a></td>
     <td align="center" >machen@apache.org</td>
   </tr>
@@ -42,7 +43,7 @@ sidebar_position: 1
     <td align="center">魏虎</td>
     <td align="center" ><a href="https://github.com/weihubeats">weihubeats</a></td>
     <td align="center" ><a href="https://weihubeats.blog.csdn.net/">weihubeats</a></td>
-    <td align="center" >weihubeats@163.com</td>
+    <td align="center" >weihu@apache.org</td>
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/BigXin0109"><img src="https://avatars.githubusercontent.com/u/24769514?v=4?s=64" width="64px;"/></a></td>
