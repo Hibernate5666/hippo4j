@@ -89,7 +89,7 @@ const config = {
             navbar: {
                 title: '',
                 logo: {
-                    alt: 'HIPPO-4J 动态可观测线程池框架',
+                    alt: 'Hippo4j 动态可观测线程池框架',
                     src: 'img/hippo4j.png',
                 },
                 items: [
@@ -116,7 +116,7 @@ const config = {
                         position: 'left',
                     },
                     {
-                        href: 'https://sourl.cn/Fyp7y4',
+                        href: 'https://magestack.cn',
                         label: '👉 刚果商城',
                         position: 'left',
                     },
@@ -184,7 +184,7 @@ const config = {
                         items: [
                             {
                                 label: 'Gitee',
-                                href: 'https://gitee.com/magestack/hippo4j',
+                                href: 'https://gitee.com/opengoofy/hippo4j',
                             },
                             {
                                 label: 'GitHub',
@@ -206,7 +206,7 @@ const config = {
                         ],
                     },
                 ],
-                copyright: `Copyright © 2021-2022 小马哥版权所有 <a href="https://beian.miit.gov.cn">京ICP备2021038095号-2
+                copyright: `Copyright © 2021-2022 马丁版权所有 <a href="https://beian.miit.gov.cn">京ICP备2021038095号
 </a>`,
             },
             prism: {

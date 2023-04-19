@@ -51,30 +51,6 @@ public class BootstrapConfigProperties implements BootstrapPropertiesInterface {
      */
     private MonitorProperties monitor = new MonitorProperties();
 
-    /***
-     * Latest use {@link MonitorProperties#getEnable()}
-     */
-    @Deprecated
-    private Boolean collect = Boolean.TRUE;
-
-    /**
-     * Latest use {@link MonitorProperties#getCollectTypes()}
-     */
-    @Deprecated
-    private String collectType;
-
-    /**
-     * Latest use {@link MonitorProperties#getInitialDelay()}
-     */
-    @Deprecated
-    private Long initialDelay = 10000L;
-
-    /**
-     * Latest use {@link MonitorProperties#getCollectInterval()}
-     */
-    @Deprecated
-    private Long collectInterval = 5000L;
-
     /**
      * Config file type.
      */
@@ -102,8 +78,9 @@ public class BootstrapConfigProperties implements BootstrapPropertiesInterface {
 
     /**
      * web config
+     * @since 1.5.0
      */
-    private WebThreadPoolProperties web;
+    private WebExecutorProperties web;
 
     /**
      * Notify platforms.

@@ -17,21 +17,11 @@
 
 package cn.hippo4j.common.executor.support;
 
-import cn.hippo4j.common.spi.DynamicThreadPoolServiceLoader;
+import cn.hippo4j.common.extension.support.ServiceLoaderRegistry;
 import lombok.Getter;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 
 /**
@@ -43,6 +33,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.ArrayBlockingQueue}
      */
     ARRAY_BLOCKING_QUEUE(1, "ArrayBlockingQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new ArrayBlockingQueue<>(capacity);
@@ -58,6 +49,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.LinkedBlockingQueue}
      */
     LINKED_BLOCKING_QUEUE(2, "LinkedBlockingQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new LinkedBlockingQueue<>(capacity);
@@ -73,6 +65,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.LinkedBlockingDeque}
      */
     LINKED_BLOCKING_DEQUE(3, "LinkedBlockingDeque") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new LinkedBlockingDeque<>(capacity);
@@ -88,6 +81,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.SynchronousQueue}
      */
     SYNCHRONOUS_QUEUE(4, "SynchronousQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new SynchronousQueue<>();
@@ -103,6 +97,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.LinkedTransferQueue}
      */
     LINKED_TRANSFER_QUEUE(5, "LinkedTransferQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new LinkedTransferQueue<>();
@@ -118,6 +113,7 @@ public enum BlockingQueueTypeEnum {
      * {@link java.util.concurrent.PriorityBlockingQueue}
      */
     PRIORITY_BLOCKING_QUEUE(6, "PriorityBlockingQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new PriorityBlockingQueue<>(capacity);
@@ -133,6 +129,7 @@ public enum BlockingQueueTypeEnum {
      * {@link ResizableCapacityLinkedBlockingQueue}
      */
     RESIZABLE_LINKED_BLOCKING_QUEUE(9, "ResizableCapacityLinkedBlockingQueue") {
+
         @Override
         <T> BlockingQueue<T> of(Integer capacity) {
             return new ResizableCapacityLinkedBlockingQueue<>(capacity);
@@ -145,10 +142,10 @@ public enum BlockingQueueTypeEnum {
     };
 
     @Getter
-    private Integer type;
+    private final Integer type;
 
     @Getter
-    private String name;
+    private final String name;
 
     /**
      * Create the specified implement of BlockingQueue with init capacity.
@@ -175,16 +172,16 @@ public enum BlockingQueueTypeEnum {
         this.name = name;
     }
 
-    private static Map<Integer, BlockingQueueTypeEnum> typeToEnumMap;
-    private static Map<String, BlockingQueueTypeEnum> nameToEnumMap;
+    private static final Map<Integer, BlockingQueueTypeEnum> TYPE_TO_ENUM_MAP;
+    private static final Map<String, BlockingQueueTypeEnum> NAME_TO_ENUM_MAP;
 
     static {
         final BlockingQueueTypeEnum[] values = BlockingQueueTypeEnum.values();
-        typeToEnumMap = new HashMap<>(values.length);
-        nameToEnumMap = new HashMap<>(values.length);
+        TYPE_TO_ENUM_MAP = new HashMap<>(values.length);
+        NAME_TO_ENUM_MAP = new HashMap<>(values.length);
         for (BlockingQueueTypeEnum value : values) {
-            typeToEnumMap.put(value.type, value);
-            nameToEnumMap.put(value.name, value);
+            TYPE_TO_ENUM_MAP.put(value.type, value);
+            NAME_TO_ENUM_MAP.put(value.name, value);
         }
     }
 
@@ -198,7 +195,7 @@ public enum BlockingQueueTypeEnum {
      * @return a BlockingQueue view of the specified T
      */
     private static <T> BlockingQueue<T> of(String blockingQueueName, Integer capacity) {
-        final BlockingQueueTypeEnum typeEnum = nameToEnumMap.get(blockingQueueName);
+        final BlockingQueueTypeEnum typeEnum = NAME_TO_ENUM_MAP.get(blockingQueueName);
         if (typeEnum == null) {
             return null;
         }
@@ -215,7 +212,7 @@ public enum BlockingQueueTypeEnum {
      * @return a BlockingQueue view of the specified T
      */
     private static <T> BlockingQueue<T> of(int type, Integer capacity) {
-        final BlockingQueueTypeEnum typeEnum = typeToEnumMap.get(type);
+        final BlockingQueueTypeEnum typeEnum = TYPE_TO_ENUM_MAP.get(type);
         if (typeEnum == null) {
             return null;
         }
@@ -225,11 +222,11 @@ public enum BlockingQueueTypeEnum {
     private static final int DEFAULT_CAPACITY = 1024;
 
     static {
-        DynamicThreadPoolServiceLoader.register(CustomBlockingQueue.class);
+        ServiceLoaderRegistry.register(CustomBlockingQueue.class);
     }
 
     private static <T> BlockingQueue<T> customOrDefaultQueue(Integer capacity, Predicate<CustomBlockingQueue> predicate) {
-        Collection<CustomBlockingQueue> customBlockingQueues = DynamicThreadPoolServiceLoader
+        Collection<CustomBlockingQueue> customBlockingQueues = ServiceLoaderRegistry
                 .getSingletonServiceInstances(CustomBlockingQueue.class);
 
         return customBlockingQueues.stream()
@@ -237,11 +234,11 @@ public enum BlockingQueueTypeEnum {
                 .map(each -> each.generateBlockingQueue())
                 .findFirst()
                 .orElseGet(() -> {
-                    int temCapacity = capacity;
+                    Integer tempCapacity = capacity;
                     if (capacity == null || capacity <= 0) {
-                        temCapacity = DEFAULT_CAPACITY;
+                        tempCapacity = DEFAULT_CAPACITY;
                     }
-                    return new LinkedBlockingQueue<T>(temCapacity);
+                    return new LinkedBlockingQueue<T>(tempCapacity);
                 });
     }
 
@@ -262,7 +259,7 @@ public enum BlockingQueueTypeEnum {
         }
 
         return customOrDefaultQueue(capacity,
-                (customeQueue) -> Objects.equals(customeQueue.getName(), blockingQueueName));
+                (customerQueue) -> Objects.equals(customerQueue.getName(), blockingQueueName));
     }
 
     /**
@@ -293,7 +290,7 @@ public enum BlockingQueueTypeEnum {
      * @return {@link BlockingQueueTypeEnum#name BlockingQueueTypeEnum.name } or "".
      */
     public static String getBlockingQueueNameByType(int type) {
-        return Optional.ofNullable(typeToEnumMap.get(type))
+        return Optional.ofNullable(TYPE_TO_ENUM_MAP.get(type))
                 .map(value -> value.getName())
                 .orElse("");
     }
@@ -306,7 +303,7 @@ public enum BlockingQueueTypeEnum {
      * @return enum  {@link BlockingQueueTypeEnum}
      */
     public static BlockingQueueTypeEnum getBlockingQueueTypeEnumByName(String name) {
-        return Optional.ofNullable(nameToEnumMap.get(name))
+        return Optional.ofNullable(NAME_TO_ENUM_MAP.get(name))
                 .orElse(LINKED_BLOCKING_QUEUE);
     }
 }

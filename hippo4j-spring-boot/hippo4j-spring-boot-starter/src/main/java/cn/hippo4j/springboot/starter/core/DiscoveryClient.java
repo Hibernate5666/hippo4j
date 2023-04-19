@@ -43,20 +43,18 @@ import static cn.hippo4j.common.constant.Constants.BASE_PATH;
 public class DiscoveryClient implements DisposableBean {
 
     private final ScheduledExecutorService scheduler;
-
     private final HttpAgent httpAgent;
-
     private final InstanceInfo instanceInfo;
+    private final ClientShutdown hippo4jClientShutdown;
 
     private volatile long lastSuccessfulHeartbeatTimestamp = -1;
-
     private static final String PREFIX = "DiscoveryClient_";
-
     private final String appPathIdentifier;
 
-    public DiscoveryClient(HttpAgent httpAgent, InstanceInfo instanceInfo) {
+    public DiscoveryClient(HttpAgent httpAgent, InstanceInfo instanceInfo, ClientShutdown hippo4jClientShutdown) {
         this.httpAgent = httpAgent;
         this.instanceInfo = instanceInfo;
+        this.hippo4jClientShutdown = hippo4jClientShutdown;
         this.appPathIdentifier = instanceInfo.getAppName().toUpperCase() + "/" + instanceInfo.getInstanceId();
         this.scheduler = new ScheduledThreadPoolExecutor(
                 new Integer(1),
@@ -92,8 +90,7 @@ public class DiscoveryClient implements DisposableBean {
         String clientCloseUrlPath = Constants.BASE_PATH + "/client/close";
         Result clientCloseResult;
         try {
-            // close scheduledExecutor
-            this.scheduler.shutdown();
+            this.prepareDestroy();
             String groupKeyIp = new StringBuilder()
                     .append(instanceInfo.getGroupKey())
                     .append(Constants.GROUP_KEY_DELIMITER)
@@ -105,7 +102,7 @@ public class DiscoveryClient implements DisposableBean {
                     .setGroupKey(groupKeyIp);
             clientCloseResult = httpAgent.httpPostByDiscovery(clientCloseUrlPath, clientCloseHookReq);
             if (clientCloseResult.isSuccess()) {
-                log.info("{}{} -client close hook success.", PREFIX, appPathIdentifier);
+                log.info("{}{} - client close hook success.", PREFIX, appPathIdentifier);
             }
         } catch (Throwable ex) {
             if (ex instanceof ShutdownExecuteException) {
@@ -113,6 +110,12 @@ public class DiscoveryClient implements DisposableBean {
             }
             log.error("{}{} - client close hook fail.", PREFIX, appPathIdentifier, ex);
         }
+    }
+
+    private void prepareDestroy() throws InterruptedException {
+        scheduler.shutdownNow();
+        // Try to make sure the ClientWorker is closed first.
+        hippo4jClientShutdown.prepareDestroy();
     }
 
     public class HeartbeatThread implements Runnable {
@@ -128,7 +131,7 @@ public class DiscoveryClient implements DisposableBean {
     private boolean renew() {
         Result renewResult;
         try {
-            if (this.scheduler.isShutdown()) {
+            if (scheduler.isShutdown()) {
                 return false;
             }
             InstanceInfo.InstanceRenew instanceRenew = new InstanceInfo.InstanceRenew()

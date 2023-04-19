@@ -22,7 +22,6 @@ import cn.hippo4j.common.model.ThreadPoolBaseInfo;
 import cn.hippo4j.common.model.ThreadPoolParameter;
 import cn.hippo4j.common.model.ThreadPoolParameterInfo;
 import cn.hippo4j.common.model.ThreadPoolRunStateInfo;
-import org.springframework.boot.web.server.WebServer;
 
 import java.util.concurrent.Executor;
 
@@ -37,6 +36,12 @@ public interface WebThreadPoolService {
      * @return Tomcat、Jetty、Undertow ThreadPoolExecutor
      */
     Executor getWebThreadPool();
+
+    /**
+     * Get web container port.
+     * @return
+     */
+    Integer getPort();
 
     /**
      * Simple info.
@@ -65,15 +70,6 @@ public interface WebThreadPoolService {
      * @param threadPoolParameterInfo
      */
     void updateWebThreadPool(ThreadPoolParameterInfo threadPoolParameterInfo);
-
-    /**
-     * Get web server.
-     *
-     * @return
-     */
-    default WebServer getWebServer() {
-        return null;
-    }
 
     /**
      * resolve current web container type.
