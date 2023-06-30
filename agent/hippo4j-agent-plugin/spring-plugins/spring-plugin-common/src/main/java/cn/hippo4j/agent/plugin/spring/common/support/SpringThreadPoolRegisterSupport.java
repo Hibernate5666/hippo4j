@@ -17,14 +17,13 @@
 
 package cn.hippo4j.agent.plugin.spring.common.support;
 
-import cn.hippo4j.agent.core.registry.AgentThreadPoolInstanceRegistry;
 import cn.hippo4j.agent.core.util.ReflectUtil;
-import cn.hippo4j.agent.core.util.ThreadPoolPropertyKey;
-import cn.hippo4j.common.constant.Constants;
+import cn.hippo4j.common.executor.ThreadPoolExecutorRegistry;
 import cn.hippo4j.common.executor.support.BlockingQueueTypeEnum;
 import cn.hippo4j.common.executor.support.RejectedPolicyTypeEnum;
+import cn.hippo4j.common.handler.DynamicThreadPoolAdapterChoose;
+import cn.hippo4j.common.model.executor.ExecutorProperties;
 import cn.hippo4j.common.toolkit.BooleanUtil;
-import cn.hippo4j.core.executor.support.adpter.DynamicThreadPoolAdapterChoose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -32,10 +31,8 @@ import org.springframework.context.ApplicationContext;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Spring thread pool register support
@@ -45,8 +42,8 @@ public class SpringThreadPoolRegisterSupport {
     private static final Logger LOGGER = LoggerFactory.getLogger(SpringThreadPoolRegisterSupport.class);
 
     public static void registerThreadPoolInstances(ApplicationContext context) {
-        Map<ThreadPoolExecutor, Class<?>> earlyConstructMap = AgentThreadPoolInstanceRegistry.getInstance().earlyConstructMap;
-        for (Map.Entry<ThreadPoolExecutor, Class<?>> entry : earlyConstructMap.entrySet()) {
+        Map<ThreadPoolExecutor, Class<?>> referencedClassMap = ThreadPoolExecutorRegistry.REFERENCED_CLASS_MAP;
+        for (Map.Entry<ThreadPoolExecutor, Class<?>> entry : referencedClassMap.entrySet()) {
             ThreadPoolExecutor enhancedInstance = entry.getKey();
             Class<?> declaredClass = entry.getValue();
             List<Field> declaredFields = ReflectUtil.getStaticFieldsFromType(declaredClass, ThreadPoolExecutor.class);
@@ -68,7 +65,7 @@ public class SpringThreadPoolRegisterSupport {
         for (Map.Entry<String, Executor> entry : beansWithAnnotation.entrySet()) {
             String beanName = entry.getKey();
             Executor bean = entry.getValue();
-            ThreadPoolExecutor executor = null;
+            ThreadPoolExecutor executor;
             if (DynamicThreadPoolAdapterChoose.match(bean)) {
                 executor = DynamicThreadPoolAdapterChoose.unwrap(bean);
             } else {
@@ -87,19 +84,15 @@ public class SpringThreadPoolRegisterSupport {
         if (executor == null) {
             return;
         }
-        // build parameter properties.
-        Properties properties = new Properties();
-        properties.put(ThreadPoolPropertyKey.THREAD_POOL_ID, threadPoolId);
-        properties.put(ThreadPoolPropertyKey.CORE_POOL_SIZE, executor.getCorePoolSize());
-        properties.put(ThreadPoolPropertyKey.MAXIMUM_POOL_SIZE, executor.getMaximumPoolSize());
-        properties.put(ThreadPoolPropertyKey.ALLOW_CORE_THREAD_TIME_OUT, BooleanUtil.toBoolean(String.valueOf(executor.allowsCoreThreadTimeOut())));
-        properties.put(ThreadPoolPropertyKey.KEEP_ALIVE_TIME, executor.getKeepAliveTime(TimeUnit.MILLISECONDS));
-        properties.put(ThreadPoolPropertyKey.BLOCKING_QUEUE, BlockingQueueTypeEnum.getBlockingQueueTypeEnumByName(executor.getQueue().getClass().getSimpleName()).getName());
-        properties.put(ThreadPoolPropertyKey.QUEUE_CAPACITY, executor.getQueue().remainingCapacity());
-        properties.put(ThreadPoolPropertyKey.THREAD_NAME_PREFIX, threadPoolId);
-        properties.put(ThreadPoolPropertyKey.REJECTED_HANDLER, RejectedPolicyTypeEnum.getRejectedPolicyTypeEnumByName(executor.getRejectedExecutionHandler().getClass().getSimpleName()).getName());
-        properties.put(ThreadPoolPropertyKey.EXECUTE_TIME_OUT, Constants.EXECUTE_TIME_OUT);
-        // register executor.
-        AgentThreadPoolInstanceRegistry.getInstance().putHolder(threadPoolId, executor, properties);
+        ExecutorProperties executorProperties = ExecutorProperties.builder()
+                .threadPoolId(threadPoolId)
+                .corePoolSize(executor.getCorePoolSize())
+                .maximumPoolSize(executor.getMaximumPoolSize())
+                .allowCoreThreadTimeOut(BooleanUtil.toBoolean(String.valueOf(executor.allowsCoreThreadTimeOut())))
+                .blockingQueue(BlockingQueueTypeEnum.getBlockingQueueTypeEnumByName(executor.getQueue().getClass().getSimpleName()).getName())
+                .queueCapacity(executor.getQueue().remainingCapacity())
+                .rejectedHandler(RejectedPolicyTypeEnum.getRejectedPolicyTypeEnumByName(executor.getRejectedExecutionHandler().getClass().getSimpleName()).getName())
+                .build();
+        ThreadPoolExecutorRegistry.putHolder(threadPoolId, executor, executorProperties);
     }
 }

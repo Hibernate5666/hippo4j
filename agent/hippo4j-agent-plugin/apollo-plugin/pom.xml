@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>apollo-plugin</artifactId>
+    <artifactId>hippo4j-agent-apollo-plugin</artifactId>
 
     <properties>
         <apollo.version>1.9.1</apollo.version>

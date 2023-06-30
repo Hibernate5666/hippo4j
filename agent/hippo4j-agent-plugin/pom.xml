@@ -13,7 +13,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>spring-plugins</module>
-        <module>thread-pool-plugin</module>
+        <module>threadpool-plugin</module>
+        <module>adapter-plugins</module>
         <module>apollo-plugin</module>
     </modules>
 

@@ -17,5 +17,14 @@
             <artifactId>hippo4j-threadpool-dynamic-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.hippo4j</groupId>
+            <artifactId>hippo4j-threadpool-dynamic-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
     </dependencies>
 </project>
